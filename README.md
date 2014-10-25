@@ -10,7 +10,6 @@ MyBatis-Generator
 具体：
     一、Model类的生成
         
-    一、Mapper（Dao）类的生成
+    二、Mapper（Dao）类的生成
         
-    一、Mapper映射XML文件的生成
-        
+    三、Mapper映射XML文件的生成
