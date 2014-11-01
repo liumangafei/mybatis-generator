@@ -18,7 +18,7 @@ MyBatis-Generator
 ### 主要作用：
         1、Model类的生成
         2、Mapper映射XML文件的生成
-        3、说明：由于Mapper（Dao）类定义成泛型接口类，所有具体的Mapper实现该接口就OK
+        3、通用的BaseMapper接口类，直接拷贝test文件夹下面的就行了
 
 ### 技术说明：
 		1、该生成器为Maven项目
