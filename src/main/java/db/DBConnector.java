@@ -110,7 +110,7 @@ public class DBConnector {
 		Map<String, String> resultMap = new LinkedHashMap<String, String>();
 
 		try {
-			conn = DBConnector.startConnect(); 
+			conn = DBConnector.startConnect();
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 			rs = stmt.executeQuery("select * from " + tableName);
 			ResultSetMetaData data = rs.getMetaData();
