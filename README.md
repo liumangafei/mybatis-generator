@@ -23,3 +23,9 @@ MyBatis-Generator
 ### 技术说明：
 		1、该生成器为Maven项目
 		2、使用freemarker模板引擎、commons-io工具包
+
+
+
+### 待改进：
+        1、支持批量生成多个表对象
+        2、针对不同数据库制定不同的DB类型与JAVA类型之间的转换
