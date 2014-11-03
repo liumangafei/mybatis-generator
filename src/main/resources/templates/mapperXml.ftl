@@ -4,7 +4,11 @@
 
     <resultMap id="${modelResultMap}" type="${modelPath}">
         <#list propertyList as property>
+        <#if property.isPrimaryKey == true>
+        <id property="${property.propertyName}" column="${property.tablePropertyName}" />
+        <#else>
         <result property="${property.propertyName}" column="${property.tablePropertyName}" />
+        </#if>
         </#list>
     </resultMap>
 
@@ -54,8 +58,8 @@
         <#assign index=0 />
         <#list propertyList as property>
             <#if property.isPrimaryKey == true>
-                <#if 0 < index>AND </#if>${property.tablePropertyName} = ${"#{" + property.propertyName + "}"}
-                <#assign index=index+1 />
+            <#if 0 < index>AND </#if>${property.tablePropertyName} = ${"#{" + property.propertyName + "}"}
+            <#assign index=index+1 />
             </#if>
         </#list>
     </select>
