@@ -82,7 +82,7 @@ public class DBConnector {
 			con = DriverManager.getConnection(sqlUrl, sqlUser, sqlPassword);
 			DatabaseMetaData dmd = con.getMetaData();
 
-			rs = dmd.getPrimaryKeys(null, null, tableName.toUpperCase());
+			rs = dmd.getPrimaryKeys(null, null, tableName);
 			
 			while (rs.next()) {
 				result.add(rs.getString(4));
@@ -129,5 +129,9 @@ public class DBConnector {
 
 		return resultMap;
 	}
+
+    public static void main(String[] args) {
+        System.out.println(new DBConnector().queryPrimarykey("auth_user"));
+    }
 
 }
