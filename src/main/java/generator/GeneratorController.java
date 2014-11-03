@@ -1,12 +1,14 @@
 package generator;
 
 import db.DBConnector;
+import freemarker.template.TemplateException;
 import model.DBType;
 import model.GenTable;
 import util.StringUtil;
 import model.GenProperty;
 import properties.ConfigPropertiesUtil;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +25,9 @@ public class GeneratorController {
     private String basePath = null;
 
     public GeneratorController(){
-        basePath = System.getProperty("user.dir"); //初始化生成器的基础路径
+//        basePath = GeneratorController.class.getResource("/").toString();
+//        basePath = new File("").getCanonicalPath();
+        basePath = System.getProperty("user.dir") + "\\" + ConfigPropertiesUtil.getProperty("baseForder"); //初始化生成器的基础路径
         initGenTable(); //初始化genTable对象
     }
 
@@ -55,12 +59,13 @@ public class GeneratorController {
         Map<String, String> fieldMap = new DBConnector().queryField(tableName); // 获取字段和字段对应类型
         List<String> primaryKeyList = new DBConnector().queryPrimarykey(tableName); // 获取主键
 
+        //如果数据库字段或者主键为空，则说明之前的查询已经出错，没有继续下去的必要
         if(fieldMap == null || fieldMap.size() == 0){
-            throw new RuntimeException("没有获取到该表的任何字段！");
+            throw new RuntimeException("数据库获取字段失败！");
         }
 
         if(primaryKeyList == null || primaryKeyList.size() == 0){
-            throw new RuntimeException("没有获取到该表的主键！");
+            throw new RuntimeException("数据库获取主键失败！");
         }
 
         //把所有字段封装到genPropertyList中
@@ -140,6 +145,15 @@ public class GeneratorController {
     }
 
     /**
+     * 获取最终要生成的mapper文件名称，包括后缀
+     *
+     * @return
+     */
+    public String getMapperFileName(){
+        return StringUtil.toLowerCaseFristOne(genTable.getClassName()) + "Mapper.java";
+    }
+
+    /**
      * 获取最终要生成的mapperXml文件名称，包括后缀
      *
      * @return
@@ -158,6 +172,15 @@ public class GeneratorController {
     }
 
     /**
+     * 获取最终要生成的mapper文件的路径
+     *
+     * @return
+     */
+    public String getMapperPath(){
+        return basePath + "\\" + genTable.getMapperXmlPackage().replace(".", "\\") +"\\" + getMapperFileName();
+    }
+
+    /**
      * 获取最终要生成的mapperXml文件的路径
      *
      * @return
@@ -165,6 +188,34 @@ public class GeneratorController {
     public String getMapperXmlPath(){
         return basePath + "\\" + genTable.getMapperXmlPackage().replace(".", "\\") +"\\" + getMapperXmlFileName();
     }
+
+    /**
+     * model类生成
+     *
+     * @return
+     */
+    public Generator createModelGenerator(){
+        return new ModelGenerator(genTable);
+    }
+
+    /**
+     * mapperXML文件生成
+     *
+     * @return
+     */
+    public Generator createMapperGenerator(){
+        return new MapperGenerator(genTable);
+    }
+
+    /**
+     * mapperXML文件生成
+     *
+     * @return
+     */
+    public Generator createMapperXMLGenerator(){
+        return new MapperXMLGenerator(genTable);
+    }
+
 
     public GenTable getGenTable() {
         return genTable;
@@ -182,40 +233,34 @@ public class GeneratorController {
         this.basePath = basePath;
     }
 
-    /**
-     * model类生成
-     *
-     * @return
-     */
-    public Generator createModelGenerator(){
-        return new ModelGenerator(genTable);
+
+
+    public void generate(){
+        System.out.println("生成器执行开始...");
+
+        //创建需要的生成器
+        Generator modelGenerator = createModelGenerator(); // model生成器
+        Generator mapperGenerator = createMapperGenerator(); //mapper生成器
+        Generator mapperXMLGenerator = createMapperXMLGenerator(); //mapperXml生成器
+
+        try {
+            //执行生成文件
+            modelGenerator.generateFile(getModelPath());
+            mapperGenerator.generateFile(getMapperPath());
+            mapperXMLGenerator.generateFile(getMapperXmlPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TemplateException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("生成器执行结束...");
     }
 
-    /**
-     * mapperXML文件生成
-     *
-     * @return
-     */
-    public Generator createMapperXMLGenerator(){
-        return new MapperXMLGenerator(genTable);
-    }
 
     public static void main(String[] args) throws Exception{
 
-//        String workPath = GeneratorController.class.getResource("/").toString();
-//        String workPath = new File("").getCanonicalPath();
-        String workPath = System.getProperty("user.dir") + "\\generatorFile"; //设置生成文件的基础路径
-
-        GeneratorController controller = new GeneratorController(); //生成器控制类
-        controller.setBasePath(workPath);
-
-        //创建需要的生成器
-        Generator modelGenerator = controller.createModelGenerator(); // model生成器
-        Generator mapperXMLGenerator = controller.createMapperXMLGenerator(); //mapperXml生成器
-
-        //执行生成文件
-        modelGenerator.generateFile(controller.getModelPath());
-        mapperXMLGenerator.generateFile(controller.getMapperXmlPath());
+        new GeneratorController().generate(); //生成器控制类
 
     }
 

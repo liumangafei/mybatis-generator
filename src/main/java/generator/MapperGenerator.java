@@ -1,13 +1,12 @@
 package generator;
 
 import freemarker.FMTemplateFactory;
-import model.GenTable;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import util.StringUtil;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import model.GenProperty;
+import model.GenTable;
+import org.apache.commons.io.FileUtils;
+import util.StringUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,34 +21,47 @@ import java.util.Map;
  * Project Name: generator
  * Description:
  */
-public class MapperXMLGenerator implements Generator {
+public class MapperGenerator implements Generator {
 
-//    private static Logger logger = LoggerFactory.getLogger(MapperXMLGenerator.class);
+//    private static Logger logger = LoggerFactory.getLogger(MapperGenerator.class);
 
     private static GenTable genTable = null;
 
-    public MapperXMLGenerator(GenTable genTable){
+    public MapperGenerator(GenTable genTable){
         this.genTable = genTable;
-    }
-
-    private String getModelResultMap(){
-        return StringUtil.toLowerCaseFristOne(genTable.getClassName()) + "ResultMap";
     }
 
     private String getModelPath(){
         return genTable.getModelPackage() + "." + genTable.getClassName();
     }
 
+    private String getPrimaryKeyType(){
+
+        int primaryKeyCount = 0;
+        GenProperty property = null;
+        for(GenProperty genProperty : genTable.getGenPropertyList()){
+            if(genProperty.getIsPrimaryKey() != null && genProperty.getIsPrimaryKey()){
+                property = genProperty;
+                primaryKeyCount++;
+            }
+        }
+
+        if(primaryKeyCount > 1){
+            return "Map";
+        }
+
+        return property.getPropertyType();
+    }
+
     @Override
     public void generateFile(Writer out) throws IOException, TemplateException {
-        Template temp = FMTemplateFactory.getTemplate("mapperXml.ftl");
+        Template temp = FMTemplateFactory.getTemplate("mapper.ftl");
 
         Map root = new HashMap();
-        root.put("tableName", genTable.getTableName());
-        root.put("propertyList", genTable.getGenPropertyList());
-        root.put("mapperPackage", genTable.getMapperPackage());
-        root.put("modelResultMap", getModelResultMap());
+        root.put("package", genTable.getMapperPackage());
         root.put("modelPath", getModelPath());
+        root.put("className", genTable.getClassName());
+        root.put("primaryKeyType", getPrimaryKeyType());
 
         temp.process(root, out);
         out.flush();
