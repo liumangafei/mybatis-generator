@@ -55,6 +55,14 @@ public class GeneratorController {
         Map<String, String> fieldMap = new DBConnector().queryField(tableName); // 获取字段和字段对应类型
         List<String> primaryKeyList = new DBConnector().queryPrimarykey(tableName); // 获取主键
 
+        if(fieldMap == null || fieldMap.size() == 0){
+            throw new RuntimeException("没有获取到该表的任何字段！");
+        }
+
+        if(primaryKeyList == null || primaryKeyList.size() == 0){
+            throw new RuntimeException("没有获取到该表的主键！");
+        }
+
         //把所有字段封装到genPropertyList中
         if(fieldMap != null && fieldMap.size() > 0 ){
             List<GenProperty> genPropertyList = new ArrayList<GenProperty>();

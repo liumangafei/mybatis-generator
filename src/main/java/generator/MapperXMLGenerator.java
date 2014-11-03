@@ -3,6 +3,8 @@ package generator;
 import freemarker.FMTemplateFactory;
 import model.GenTable;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.StringUtil;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -21,6 +23,8 @@ import java.util.Map;
  * Description:
  */
 public class MapperXMLGenerator implements Generator {
+
+//    private static Logger logger = LoggerFactory.getLogger(MapperXMLGenerator.class);
 
     private static GenTable genTable = null;
 
@@ -56,6 +60,7 @@ public class MapperXMLGenerator implements Generator {
         Writer out = new OutputStreamWriter(FileUtils.openOutputStream(new File(filePath)));
         generateFile(out);
         out.flush();
+        System.out.println(filePath + "文件创建完毕！");
     }
 
 }

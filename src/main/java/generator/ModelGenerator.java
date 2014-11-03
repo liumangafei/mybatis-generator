@@ -6,6 +6,8 @@ import model.GenProperty;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,8 @@ import java.util.Map;
  * Description:
  */
 public class ModelGenerator implements Generator {
+
+//    private static Logger logger = LoggerFactory.getLogger(ModelGenerator.class);
 
     private static GenTable genTable = null;
 
@@ -89,6 +93,7 @@ public class ModelGenerator implements Generator {
         Writer out = new OutputStreamWriter(FileUtils.openOutputStream(new File(filePath)));
         generateFile(out);
         out.flush();
+        System.out.println(filePath + "文件创建完毕！");
     }
 
 }
