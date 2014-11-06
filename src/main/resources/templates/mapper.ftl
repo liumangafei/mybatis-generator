@@ -1,6 +1,6 @@
 package ${package};
 
-import #{modelPath};
+import ${modelPath};
 import org.springframework.stereotype.Repository;
 
 @Repository
