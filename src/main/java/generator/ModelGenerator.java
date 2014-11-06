@@ -28,7 +28,7 @@ public class ModelGenerator implements Generator {
 
 //    private static Logger logger = LoggerFactory.getLogger(ModelGenerator.class);
 
-    private static GenTable genTable = null;
+    private GenTable genTable = null;
 
     public ModelGenerator(GenTable genTable){
         this.genTable = genTable;
@@ -93,7 +93,18 @@ public class ModelGenerator implements Generator {
         Writer out = new OutputStreamWriter(FileUtils.openOutputStream(new File(filePath)));
         generateFile(out);
         out.flush();
-        System.out.println(filePath + "文件创建完毕！");
     }
 
+    @Override
+    public void generateFile() throws IOException, TemplateException {
+        generateFile(genTable.getModelPath());
+    }
+
+    public GenTable getGenTable() {
+        return genTable;
+    }
+
+    public void setGenTable(GenTable genTable) {
+        this.genTable = genTable;
+    }
 }

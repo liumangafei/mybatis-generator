@@ -21,31 +21,50 @@ import java.util.Map;
  */
 public class GeneratorController {
 
-    private GenTable genTable = null;
     private String basePath = null;
+    private List<GenTable> genTableList = null;
 
     public GeneratorController(){
 //        basePath = GeneratorController.class.getResource("/").toString();
 //        basePath = new File("").getCanonicalPath();
-        basePath = System.getProperty("user.dir") + "\\" + ConfigPropertiesUtil.getProperty("baseForder"); //初始化生成器的基础路径
-        initGenTable(); //初始化genTable对象
+        this.basePath = System.getProperty("user.dir") + "\\" + ConfigPropertiesUtil.getProperty("baseForder"); //初始化生成器的基础路径
+        this.genTableList = initGenTableList();
     }
 
-    public GeneratorController(GenTable genTable){
-        this.genTable = genTable;
+    public GeneratorController(String basePath, List<GenTable> genTableList){
+        this.basePath = basePath;
+        this.genTableList = genTableList;
     }
 
     /**
      * 初始化数据库表对应的对象
      */
-    private void initGenTable(){
-        genTable = new GenTable();
-        genTable.setTableName(ConfigPropertiesUtil.getProperty("tableName"));
-        genTable.setClassName(StringUtil.toUpperCaseFristOne(StringUtil.toCamelCase(genTable.getTableName())));
-        genTable.setGenPropertyList(getPropertyList(genTable.getTableName()));
-        genTable.setModelPackage(ConfigPropertiesUtil.getProperty("modelPackage"));
-        genTable.setMapperPackage(ConfigPropertiesUtil.getProperty("mapperPackage"));
-        genTable.setMapperXmlPackage(ConfigPropertiesUtil.getProperty("mapperXmlPackage"));
+    private List<GenTable> initGenTableList(){
+
+        List<GenTable> genTableList = new ArrayList<GenTable>();
+
+        GenTable genTable = null;
+        String tableNames = ConfigPropertiesUtil.getProperty("tableNames");
+
+        if(tableNames != null && !"".equals(tableNames)){
+            for(String tableName : tableNames.split(",")){
+                genTable = new GenTable();
+
+                genTable.setTableName(tableName);
+                genTable.setClassName(StringUtil.toUpperCaseFristOne(StringUtil.toCamelCase(tableName)));
+                genTable.setGenPropertyList(getPropertyList(tableName));
+                genTable.setModelPackage(ConfigPropertiesUtil.getProperty("modelPackage"));
+                genTable.setMapperPackage(ConfigPropertiesUtil.getProperty("mapperPackage"));
+                genTable.setMapperXmlPackage(ConfigPropertiesUtil.getProperty("mapperXmlPackage"));
+                genTable.setModelPath(getModelPath(basePath, genTable.getModelPackage(), genTable.getClassName()));
+                genTable.setMapperPath(getMapperPath(basePath, genTable.getMapperPackage(), genTable.getClassName()));
+                genTable.setMapperXmlPath(getMapperXmlPath(basePath, genTable.getMapperXmlPackage(), genTable.getClassName()));
+
+                genTableList.add(genTable);
+            }
+        }
+
+        return genTableList;
     }
 
     /**
@@ -61,11 +80,11 @@ public class GeneratorController {
 
         //如果数据库字段或者主键为空，则说明之前的查询已经出错，没有继续下去的必要
         if(fieldMap == null || fieldMap.size() == 0){
-            throw new RuntimeException("数据库获取字段失败！");
+            throw new RuntimeException(tableName + "该表获取字段失败！");
         }
 
         if(primaryKeyList == null || primaryKeyList.size() == 0){
-            throw new RuntimeException("数据库获取主键失败！");
+            throw new RuntimeException(tableName + "该表获取主键失败！");
         }
 
         //把所有字段封装到genPropertyList中
@@ -136,39 +155,12 @@ public class GeneratorController {
     }
 
     /**
-     * 获取最终要生成的model文件名称，包括后缀
-     *
-     * @return
-     */
-    public String getClassFileName(){
-        return genTable.getClassName() + ".java";
-    }
-
-    /**
-     * 获取最终要生成的mapper文件名称，包括后缀
-     *
-     * @return
-     */
-    public String getMapperFileName(){
-        return StringUtil.toLowerCaseFristOne(genTable.getClassName()) + "Mapper.java";
-    }
-
-    /**
-     * 获取最终要生成的mapperXml文件名称，包括后缀
-     *
-     * @return
-     */
-    public String getMapperXmlFileName(){
-        return StringUtil.toLowerCaseFristOne(genTable.getClassName()) + "-Mapper.xml";
-    }
-
-    /**
      * 获取最终要生成的model文件的路径
      *
      * @return
      */
-    public String getModelPath(){
-        return basePath + "\\" + genTable.getModelPackage().replace(".", "\\") +"\\" + getClassFileName();
+    public String getModelPath(String basePath, String modelPackage, String className){
+        return basePath + "\\" + modelPackage.replace(".", "\\") +"\\" + className + ".java";
     }
 
     /**
@@ -176,8 +168,8 @@ public class GeneratorController {
      *
      * @return
      */
-    public String getMapperPath(){
-        return basePath + "\\" + genTable.getMapperXmlPackage().replace(".", "\\") +"\\" + getMapperFileName();
+    public String getMapperPath(String basePath, String mapperPackage, String className){
+        return basePath + "\\" + mapperPackage.replace(".", "\\") +"\\" + className + "Mapper.java";
     }
 
     /**
@@ -185,82 +177,110 @@ public class GeneratorController {
      *
      * @return
      */
-    public String getMapperXmlPath(){
-        return basePath + "\\" + genTable.getMapperXmlPackage().replace(".", "\\") +"\\" + getMapperXmlFileName();
+    public String getMapperXmlPath(String basePath, String mapperXmlPackage, String className){
+        return basePath + "\\" + mapperXmlPackage.replace(".", "\\") +"\\" + StringUtil.toLowerCaseFristOne(className) + "-mapper.xml";
     }
 
     /**
-     * model类生成
+     * 生成一个model文件
      *
-     * @return
+     * @param genTable
      */
-    public Generator createModelGenerator(){
-        return new ModelGenerator(genTable);
+    public void generateModelFile(GenTable genTable) {
+        try {
+            //创建model文件
+            Generator generator = new ModelGenerator(genTable); // model生成器
+            generator.generateFile();
+        } catch (Exception e) {
+            new RuntimeException("创建" + genTable.getModelPath() + "文件时出错！");
+            e.printStackTrace();
+        } finally {
+            System.out.println(genTable.getModelPath() + "文件创建完毕！");
+        }
     }
 
     /**
-     * mapperXML文件生成
+     * 生成一个mapper文件
      *
-     * @return
+     * @param genTable
      */
-    public Generator createMapperGenerator(){
-        return new MapperGenerator(genTable);
+    public void generateMapperFile(GenTable genTable) {
+        try {
+            Generator generator = new MapperGenerator(genTable); // mapper生成器
+            generator.generateFile(); // 创建mapper文件
+        } catch (Exception e) {
+            new RuntimeException("创建" + genTable.getMapperPath() + "文件时出错！");
+            e.printStackTrace();
+        } finally {
+            System.out.println(genTable.getMapperPath() + "文件创建完毕！");
+        }
     }
 
     /**
-     * mapperXML文件生成
+     * 生成一个mapperXml文件
      *
-     * @return
+     * @param genTable
      */
-    public Generator createMapperXMLGenerator(){
-        return new MapperXMLGenerator(genTable);
+    public void generateMapperXmlFile(GenTable genTable) {
+        try {
+            Generator generator = new MapperXMLGenerator(genTable); // mapperXml生成器
+            generator.generateFile(); // 创建mapperXml文件
+        } catch (Exception e) {
+            new RuntimeException("创建" + genTable.getMapperXmlPath() + "文件时出错！");
+            e.printStackTrace();
+        } finally {
+            System.out.println(genTable.getMapperXmlPath() + "文件创建完毕！");
+        }
     }
 
+    /**
+     * 生成genTable对应的相关文件
+     *
+     * @param genTable
+     */
+    public void generate(GenTable genTable){
+        generateModelFile(genTable);
+        generateMapperFile(genTable);
+        generateMapperXmlFile(genTable);
+    }
 
-    public GenTable getGenTable() {
-        return genTable;
+    /**
+     * 生成所有的文件
+     */
+    public void generateAll(){
+        System.out.println("生成器执行开始...");
+
+        if(genTableList != null && genTableList.size() > 0){
+            for(GenTable genTable : genTableList){
+                generate(genTable);
+            }
+        }else{
+            System.out.println("没有发现要生成表的相关信息！");
+        }
+
+        System.out.println("生成器执行结束...");
     }
 
     public String getBasePath() {
         return basePath;
     }
 
-    public void setGenTable(GenTable genTable) {
-        this.genTable = genTable;
-    }
-
     public void setBasePath(String basePath) {
         this.basePath = basePath;
     }
 
-
-
-    public void generate(){
-        System.out.println("生成器执行开始...");
-
-        //创建需要的生成器
-        Generator modelGenerator = createModelGenerator(); // model生成器
-        Generator mapperGenerator = createMapperGenerator(); //mapper生成器
-        Generator mapperXMLGenerator = createMapperXMLGenerator(); //mapperXml生成器
-
-        try {
-            //执行生成文件
-            modelGenerator.generateFile(getModelPath());
-            mapperGenerator.generateFile(getMapperPath());
-            mapperXMLGenerator.generateFile(getMapperXmlPath());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TemplateException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("生成器执行结束...");
+    public List<GenTable> getGenTableList() {
+        return genTableList;
     }
 
+    public void setGenTableList(List<GenTable> genTableList) {
+        this.genTableList = genTableList;
+    }
 
     public static void main(String[] args) throws Exception{
 
-        new GeneratorController().generate(); //生成器控制类
+        //生成所有的表，对应的所有文件
+        new GeneratorController().generateAll();
 
     }
 

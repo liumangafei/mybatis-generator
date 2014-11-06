@@ -10,12 +10,24 @@ import java.util.List;
  */
 public class GenTable {
 
+    /** 数据库表名 */
     private String tableName;
+    /** Model类名 */
     private String className;
+    /** 表字段列表 */
     private List<GenProperty> genPropertyList;
+    /** model类的package */
     private String modelPackage;
+    /** mapper类的package */
     private String mapperPackage;
+    /** mapperXml文件的package */
     private String mapperXmlPackage;
+    /** model类path */
+    private String modelPath;
+    /** mapper类path */
+    private String mapperPath;
+    /** mapperXml文件path */
+    private String mapperXmlPath;
 
     public String getTableName() {
         return tableName;
@@ -63,5 +75,29 @@ public class GenTable {
 
     public void setMapperXmlPackage(String mapperXmlPackage) {
         this.mapperXmlPackage = mapperXmlPackage;
+    }
+
+    public String getModelPath() {
+        return modelPath;
+    }
+
+    public void setModelPath(String modelPath) {
+        this.modelPath = modelPath;
+    }
+
+    public String getMapperPath() {
+        return mapperPath;
+    }
+
+    public void setMapperPath(String mapperPath) {
+        this.mapperPath = mapperPath;
+    }
+
+    public String getMapperXmlPath() {
+        return mapperXmlPath;
+    }
+
+    public void setMapperXmlPath(String mapperXmlPath) {
+        this.mapperXmlPath = mapperXmlPath;
     }
 }
