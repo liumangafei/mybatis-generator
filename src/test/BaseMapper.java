@@ -18,7 +18,7 @@ public interface BaseMapper<T, ID extends Serializable> {
      *
      * @return
      */
-    Iterable<T> findAll();
+    List<T> findAll();
 
     /**
      * 根据id获取entity
@@ -34,7 +34,7 @@ public interface BaseMapper<T, ID extends Serializable> {
 //     * @param ids
 //     * @return
 //     */
-//    Iterable<T> findByIds(Iterable<ID> ids);
+//    List<T> findByIds(List<ID> ids);
 
     /**
      * 根据entity内的属性值作为条件，查询出符合条件的entity集合
@@ -42,7 +42,7 @@ public interface BaseMapper<T, ID extends Serializable> {
      * @param entity
      * @return
      */
-    Iterable<T> findByCondition(T entity);
+    List<T> findByCondition(T entity);
 
     /**
      * 获取分页的entity集合
@@ -50,7 +50,7 @@ public interface BaseMapper<T, ID extends Serializable> {
      * @param rowBounds
      * @return
      */
-    Iterable<T> findPage(RowBounds rowBounds);
+    List<T> findPage(RowBounds rowBounds);
 
     /**
      * 根据entity内的属性值作为条件，获取符合条件的分页entity集合
@@ -59,7 +59,7 @@ public interface BaseMapper<T, ID extends Serializable> {
      * @param rowBounds
      * @return
      */
-    Iterator<T> findPageByCondition(T entity, RowBounds rowBounds);
+    List<T> findPageByCondition(T entity, RowBounds rowBounds);
 
     /**
      * 根据entity内的id，更新entity对象
