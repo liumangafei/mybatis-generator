@@ -28,3 +28,5 @@ MyBatis-Generator
 
 ### 待改进：
         1、针对不同数据库制定不同的DB类型与JAVA类型之间的转换
+        2、给model类添加注释
+        3、修改DBConnector类的相关方法
