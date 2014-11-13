@@ -13,6 +13,7 @@ public class GenProperty {
     private String propertyName;
     private String tablePropertyName;
     private String tablePropertyType;
+    private String tablePropertyRemarmk;
     private String propertyNameSetStr;
     private String propertyNameGetStr;
 
@@ -54,6 +55,14 @@ public class GenProperty {
 
     public void setTablePropertyType(String tablePropertyType) {
         this.tablePropertyType = tablePropertyType;
+    }
+
+    public String getTablePropertyRemarmk() {
+        return tablePropertyRemarmk;
+    }
+
+    public void setTablePropertyRemarmk(String tablePropertyRemarmk) {
+        this.tablePropertyRemarmk = tablePropertyRemarmk;
     }
 
     public String getPropertyNameSetStr() {

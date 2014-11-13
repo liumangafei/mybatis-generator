@@ -77,6 +77,7 @@ public class GeneratorController {
 
         Map<String, String> fieldMap = new DBConnector().queryField(tableName); // 获取字段和字段对应类型
         List<String> primaryKeyList = new DBConnector().queryPrimarykey(tableName); // 获取主键
+        Map<String, String> remarksMap = new DBConnector().queryRemarks(tableName); // 获取注释内容
 
         //如果数据库字段或者主键为空，则说明之前的查询已经出错，没有继续下去的必要
         if(fieldMap == null || fieldMap.size() == 0){
@@ -106,6 +107,7 @@ public class GeneratorController {
                 genProperty.setPropertyType(convertDbType2JavaType(propertyType)); // 根据数据库类型获取JAVA字段类型
                 genProperty.setTablePropertyName(key);
                 genProperty.setTablePropertyType(propertyType);
+                genProperty.setTablePropertyRemarmk(getRemark(key, remarksMap));
                 genProperty.setPropertyNameSetStr("set" + upperFirstCamelStr);
                 genProperty.setPropertyNameGetStr("get" + upperFirstCamelStr);
 
@@ -132,6 +134,23 @@ public class GeneratorController {
             }
         }
         return false;
+    }
+
+    /**
+     * 获取field在表中对应的注释信息
+     *
+     * @param field
+     * @param remarksMap
+     * @return
+     */
+    private String getRemark(String field, Map<String, String> remarksMap){
+        for(String key : remarksMap.keySet()){
+            if(key.equals(field)){
+                return remarksMap.get(key);
+            }
+        }
+
+        return "";
     }
 
     /**
@@ -276,6 +295,9 @@ public class GeneratorController {
     public void setGenTableList(List<GenTable> genTableList) {
         this.genTableList = genTableList;
     }
+
+
+
 
     public static void main(String[] args) throws Exception{
 

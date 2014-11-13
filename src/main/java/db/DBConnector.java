@@ -96,6 +96,37 @@ public class DBConnector {
 		
 		return result;
 	}
+
+    /**
+     * 根据字段的注释
+     * @param tableName
+     * @return
+     */
+    public Map<String, String> queryRemarks(String tableName) {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        Map<String, String> resultMap = new LinkedHashMap<String, String>();
+
+        try {
+            conn = DBConnector.startConnect();
+            DatabaseMetaData databaseMetaData = conn.getMetaData();
+            rs = databaseMetaData.getColumns(null, "%", tableName, "%");
+
+            while (rs.next()) {
+                resultMap.put(rs.getString("COLUMN_NAME"), rs.getString("REMARKS"));
+            }
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBConnector.disconnect(conn, stmt, rs);
+        }
+
+        return resultMap;
+    }
 	
 	/**
 	 * 获取字段和字段对应类型
@@ -112,9 +143,9 @@ public class DBConnector {
 		try {
 			conn = DBConnector.startConnect();
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-			rs = stmt.executeQuery("select * from " + tableName);
+			rs = stmt.executeQuery("select * from " + tableName + " limit 0, 1");
 			ResultSetMetaData data = rs.getMetaData();
-			
+
 			for (int i = 1; i <= data.getColumnCount(); i++) {
 				resultMap.put(data.getColumnName(i), data.getColumnTypeName(i));
 			}
@@ -131,7 +162,7 @@ public class DBConnector {
 	}
 
     public static void main(String[] args) {
-        System.out.println(new DBConnector().queryPrimarykey("auth_user"));
+        System.out.println(new DBConnector().queryField("auth_user"));
     }
 
 }

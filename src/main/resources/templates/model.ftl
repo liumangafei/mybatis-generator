@@ -7,6 +7,7 @@ import ${import};
 public class ${className} {
 
 <#list propertyList as property>
+    /** ${property.tablePropertyRemarmk} */
     private ${property.propertyType} ${property.propertyName};
 </#list>
 
