@@ -161,8 +161,34 @@ public class DBConnector {
 		return resultMap;
 	}
 
+    public List<String> queryAllTableNames(){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        List<String> resultList = new ArrayList<String>();
+
+        try {
+            conn = DBConnector.startConnect();
+            rs = conn.getMetaData().getTables(null,null,null,null);
+
+            while(rs.next())
+            {
+                resultList.add(rs.getString("TABLE_NAME"));
+            }
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBConnector.disconnect(conn, stmt, rs);
+        }
+
+        return resultList;
+    }
+
     public static void main(String[] args) {
-        System.out.println(new DBConnector().queryField("auth_user"));
+        System.out.println(new DBConnector().queryAllTableNames());
     }
 
 }
