@@ -44,11 +44,22 @@ public class GeneratorController {
         List<GenTable> genTableList = new ArrayList<GenTable>();
 
         GenTable genTable = null;
+        List<String> tableNameList = new ArrayList<String>();
         String tableNames = ConfigPropertiesUtil.getProperty("tableNames");
 
-        if(tableNames != null && !"".equals(tableNames)){
-            for(String tableName : tableNames.split(",")){
+        if("".equals(tableNames.trim())) {
+            tableNameList = new DBConnector().queryAllTableNames();
+        }else{
+            for(String tableName : tableNames.trim().split(",")){
+                tableNameList.add(tableName);
+            }
+        }
+
+        if(tableNameList != null && tableNameList.size() > 0){
+            for(String tableName : tableNameList){
                 genTable = new GenTable();
+
+                System.out.println("正在扫描表：" + tableName);
 
                 genTable.setTableName(tableName);
                 genTable.setClassName(StringUtil.toUpperCaseFristOne(StringUtil.toCamelCase(tableName)));

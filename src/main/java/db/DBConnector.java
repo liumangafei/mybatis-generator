@@ -37,7 +37,6 @@ public class DBConnector {
 	public static Connection startConnect() throws ClassNotFoundException, SQLException {
 		Class.forName(driverName);
 		return DriverManager.getConnection(sqlUrl, sqlUser, sqlPassword);
-
 	}
 
 	public static void disconnect(Connection conn, Statement stmt, ResultSet rs) {
