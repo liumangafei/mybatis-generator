@@ -1,5 +1,7 @@
 package db;
 
+import model.Columns;
+import model.Tables;
 import properties.ConfigPropertiesUtil;
 
 import java.sql.*;
@@ -67,88 +69,50 @@ public class DBConnector {
 	}
 
 	/**
-	 * 根据表名获取主键
-     * @param tableName
-     * @return
-     */
-	public List<String> queryPrimarykey(String tableName) {
-		Connection con = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		List<String> result = new ArrayList<String>();
-
-		try {
-			con = DriverManager.getConnection(sqlUrl, sqlUser, sqlPassword);
-			DatabaseMetaData dmd = con.getMetaData();
-
-			rs = dmd.getPrimaryKeys(null, null, tableName);
-			
-			while (rs.next()) {
-				result.add(rs.getString(4));
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}  finally {
-			DBConnector.disconnect(con, stmt, rs);
-		}
-		
-		return result;
-	}
-
-    /**
-     * 根据字段的注释
-     * @param tableName
-     * @return
-     */
-    public Map<String, String> queryRemarks(String tableName) {
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        Map<String, String> resultMap = new LinkedHashMap<String, String>();
-
-        try {
-            conn = DBConnector.startConnect();
-            DatabaseMetaData databaseMetaData = conn.getMetaData();
-            rs = databaseMetaData.getColumns(null, "%", tableName, "%");
-
-            while (rs.next()) {
-                resultMap.put(rs.getString("COLUMN_NAME"), rs.getString("REMARKS"));
-            }
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DBConnector.disconnect(conn, stmt, rs);
-        }
-
-        return resultMap;
-    }
-	
-	/**
-	 * 获取字段和字段对应类型
-     *
-	 * @param tableName
+	 * 查询数据库中所有表信息
+	 *
 	 * @return
 	 */
-	public Map<String, String> queryField(String tableName) {
+	public List<Tables> queryTables(){
+		String sql = "select * from information_schema.tables where table_schema=DATABASE()";
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
-		Map<String, String> resultMap = new LinkedHashMap<String, String>();
+		List<Tables> resultList = new ArrayList<Tables>();
 
 		try {
 			conn = DBConnector.startConnect();
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-			rs = stmt.executeQuery("select * from " + tableName + " limit 0, 1");
-			ResultSetMetaData data = rs.getMetaData();
+			rs = stmt.executeQuery(sql);
+			Tables tables = null;
 
-			for (int i = 1; i <= data.getColumnCount(); i++) {
-				resultMap.put(data.getColumnName(i), data.getColumnTypeName(i));
+			while(rs.next()){
+				tables = new Tables();
+				tables.setTableCatalog(rs.getString("TABLE_CATALOG"));
+				tables.setTableSchema(rs.getString("TABLE_SCHEMA"));
+				tables.setTableName(rs.getString("TABLE_NAME"));
+				tables.setTableType(rs.getString("TABLE_TYPE"));
+				tables.setEngine(rs.getString("ENGINE"));
+				tables.setVersion(rs.getLong("VERSION"));
+				tables.setRowFormat(rs.getString("ROW_FORMAT"));
+				tables.setTableRows(rs.getLong("TABLE_ROWS"));
+				tables.setAvgRowLength(rs.getLong("AVG_ROW_LENGTH"));
+				tables.setDataLength(rs.getLong("DATA_LENGTH"));
+				tables.setMaxDataLength(rs.getLong("MAX_DATA_LENGTH"));
+				tables.setIndexLength(rs.getLong("INDEX_LENGTH"));
+				tables.setDataFree(rs.getLong("DATA_FREE"));
+				tables.setAutoIncrement(rs.getLong("AUTO_INCREMENT"));
+				tables.setCreateTime(rs.getTimestamp("CREATE_TIME"));
+				tables.setUpdateTime(rs.getTimestamp("UPDATE_TIME"));
+				tables.setCheckTime(rs.getTimestamp("CHECK_TIME"));
+				tables.setTableCollation(rs.getString("TABLE_COLLATION"));
+				tables.setChecksum(rs.getLong("CHECKSUM"));
+				tables.setCreateOptions(rs.getString("CREATE_OPTIONS"));
+				tables.setTableComment(rs.getString("TABLE_COMMENT"));
+
+				resultList.add(tables);
 			}
-			
+
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -157,37 +121,67 @@ public class DBConnector {
 			DBConnector.disconnect(conn, stmt, rs);
 		}
 
-		return resultMap;
+		return resultList;
 	}
 
-    public List<String> queryAllTableNames(){
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        List<String> resultList = new ArrayList<String>();
+	/**
+	 * 根据表明查询表内所有字段的信息
+	 *
+	 * @param tableName
+	 * @return
+	 */
+	public List<Columns> queryColumnsByTableName(String tableName){
+		String sql = "select * from information_schema.columns where table_schema=DATABASE() and table_name='"+ tableName +"'";
 
-        try {
-            conn = DBConnector.startConnect();
-            rs = conn.getMetaData().getTables(null,null,null,null);
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		List<Columns> resultList = new ArrayList<Columns>();
 
-            while(rs.next())
-            {
-                resultList.add(rs.getString("TABLE_NAME"));
-            }
+		try {
+			conn = DBConnector.startConnect();
+			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			rs = stmt.executeQuery(sql);
+			Columns columns = null;
+			while(rs.next()){
+				columns = new Columns();
+				columns.setTableCatalog(rs.getString("TABLE_CATALOG"));
+				columns.setTableSchema(rs.getString("TABLE_SCHEMA"));
+				columns.setTableName(rs.getString("TABLE_NAME"));
+				columns.setColumnName(rs.getString("COLUMN_NAME"));
+				columns.setOrdinalPosition(rs.getLong("ORDINAL_POSITION"));
+				columns.setColumnDefault(rs.getString("COLUMN_DEFAULT"));
+				columns.setIsNullable(rs.getString("IS_NULLABLE"));
+				columns.setDataType(rs.getString("DATA_TYPE"));
+				columns.setCharacterMaximumLength(rs.getLong("CHARACTER_MAXIMUM_LENGTH"));
+				columns.setCharacterOctetLength(rs.getLong("CHARACTER_OCTET_LENGTH"));
+				columns.setNumericPrecision(rs.getLong("NUMERIC_PRECISION"));
+				columns.setNumericScale(rs.getLong("NUMERIC_SCALE"));
+				columns.setDatetimePrecision(rs.getLong("DATETIME_PRECISION"));
+				columns.setCharacterSetName(rs.getString("CHARACTER_SET_NAME"));
+				columns.setCollationName(rs.getString("COLLATION_NAME"));
+				columns.setColumnType(rs.getString("COLUMN_TYPE"));
+				columns.setColumnKey(rs.getString("COLUMN_KEY"));
+				columns.setExtra(rs.getString("EXTRA"));
+				columns.setPrivileges(rs.getString("PRIVILEGES"));
+				columns.setColumnComment(rs.getString("COLUMN_COMMENT"));
 
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DBConnector.disconnect(conn, stmt, rs);
-        }
+				resultList.add(columns);
+			}
 
-        return resultList;
-    }
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBConnector.disconnect(conn, stmt, rs);
+		}
+
+		return resultList;
+	}
 
     public static void main(String[] args) {
-        System.out.println(new DBConnector().queryAllTableNames());
+        new DBConnector().queryColumnsByTableName("sys_city");
     }
 
 }
