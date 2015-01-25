@@ -2,6 +2,7 @@ package db;
 
 import model.Columns;
 import model.Tables;
+import org.apache.log4j.Logger;
 import properties.ConfigPropertiesUtil;
 
 import java.sql.*;
@@ -17,6 +18,8 @@ import java.util.Map;
  * Description: 数据库连接类，几个方法为了获取到表和字段的相关信息
  */
 public class DBConnector {
+
+	protected Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private static String driverName = null;
 	private static String sqlUrl = null;
@@ -114,8 +117,10 @@ public class DBConnector {
 			}
 
 		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		} catch (SQLException e) {
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		} finally {
 			DBConnector.disconnect(conn, stmt, rs);
@@ -170,8 +175,10 @@ public class DBConnector {
 			}
 
 		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		} catch (SQLException e) {
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		} finally {
 			DBConnector.disconnect(conn, stmt, rs);

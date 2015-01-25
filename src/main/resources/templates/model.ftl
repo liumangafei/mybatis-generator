@@ -7,10 +7,13 @@ import ${import};
 public class ${className} {
 
 <#list propertyList as property>
+    <#if property.tablePropertyRemarmk != "">
     /** ${property.tablePropertyRemarmk} */
     private ${property.propertyType} ${property.propertyName};
+    <#else>
+    private ${property.propertyType} ${property.propertyName};
+    </#if>
 </#list>
-
 <#list propertyList as property>
 
     public ${property.propertyType} ${property.propertyNameGetStr}() {

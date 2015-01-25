@@ -46,6 +46,7 @@ public class MapperXMLGenerator implements Generator {
 
         Map root = new HashMap();
         root.put("tableName", genTable.getTableName());
+        root.put("mapperClassName", genTable.getMapperClassName());
         root.put("propertyList", genTable.getGenPropertyList());
         root.put("mapperPackage", genTable.getMapperPackage());
         root.put("modelResultMap", getModelResultMap());

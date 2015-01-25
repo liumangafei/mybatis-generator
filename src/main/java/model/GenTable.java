@@ -14,6 +14,8 @@ public class GenTable {
     private String tableName;
     /** Model类名 */
     private String className;
+    /** Mapper类名 */
+    private String mapperClassName;
     /** 表字段列表 */
     private List<GenProperty> genPropertyList;
     /** model类的package */
@@ -43,6 +45,14 @@ public class GenTable {
 
     public void setClassName(String className) {
         this.className = className;
+    }
+
+    public String getMapperClassName() {
+        return mapperClassName;
+    }
+
+    public void setMapperClassName(String mapperClassName) {
+        this.mapperClassName = mapperClassName;
     }
 
     public List<GenProperty> getGenPropertyList() {

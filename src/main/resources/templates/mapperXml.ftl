@@ -1,6 +1,6 @@
 <?xml version="1.0"  encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="${mapperPackage}">
+<mapper namespace="${mapperPackage}.${mapperClassName}">
 
     <resultMap id="${modelResultMap}" type="${modelPath}">
         <#list propertyList as property>
@@ -44,13 +44,13 @@
         </#list>
     </sql>
 
-    <select id="findAll" parameterType="${modelPath}" resultMap="${modelResultMap}">
+    <select id="findAll" resultMap="${modelResultMap}">
         select
             <include refid="selectClause" />
         from ${tableName}
     </select>
 
-    <select id="findById" resultMap="${modelResultMap}">
+    <select id="findByPrimaryKey" resultMap="${modelResultMap}">
         select
             <include refid="selectClause" />
         from ${tableName}
@@ -88,8 +88,8 @@
         </where>
     </select>
 
-    <update id="updateById" parameterType="${modelPath}">
-        update user set
+    <update id="updateByPrimaryKey" parameterType="${modelPath}">
+        update ${tableName} set
         <include refid="updateClause" />
         where
         <#assign index=0 />
@@ -102,7 +102,7 @@
     </update>
 
     <insert id="save" parameterType="${modelPath}">
-        insert into user
+        insert into ${tableName}
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <include refid="insertClause" />
         </trim>
@@ -112,13 +112,13 @@
         </trim>
     </insert>
 
-    <select id="count" parameterType="${modelPath}">
+    <select id="count" parameterType="${modelPath}" resultType="long">
         select
             count(*)
         from ${tableName}
     </select>
 
-    <select id="countByCondition" parameterType="${modelPath}">
+    <select id="countByCondition" parameterType="${modelPath}" resultType="long">
         select
             count(*)
         from ${tableName}
@@ -127,7 +127,7 @@
         </where>
     </select>
 
-    <delete id="deleteById">
+    <delete id="deleteByPrimaryKey">
         delete
         from ${tableName}
         where

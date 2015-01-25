@@ -60,6 +60,8 @@ public class GeneratorController {
                 logger.info("正在初始化表："+tableName);
                 genTableList.add(getGenTableByTableName(tableName));
             }
+        }else{
+            throw new RuntimeException("未找到需要初始化的数据库表！");
         }
         logger.info("---------------初始化数据库表已结束---------------");
 
@@ -195,6 +197,7 @@ public class GeneratorController {
 
         genTable.setTableName(tableName);
         genTable.setClassName(StringUtil.toUpperCaseFristOne(StringUtil.toCamelCase(tableName)));
+        genTable.setMapperClassName(genTable.getClassName() + "Mapper");
         genTable.setGenPropertyList(getPropertyList(tableName));
         genTable.setModelPackage(ConfigPropertiesUtil.getProperty("modelPackage"));
         genTable.setMapperPackage(ConfigPropertiesUtil.getProperty("mapperPackage"));
