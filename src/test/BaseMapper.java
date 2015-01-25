@@ -26,15 +26,7 @@ public interface BaseMapper<T, ID extends Serializable> {
      * @param id
      * @return
      */
-    T findById(ID id);
-
-//    /**
-//     * 根据ids获取所有的entity集合
-//     *
-//     * @param ids
-//     * @return
-//     */
-//    List<T> findByIds(List<ID> ids);
+    T findByPrimaryKey(ID id);
 
     /**
      * 根据entity内的属性值作为条件，查询出符合条件的entity集合
@@ -67,7 +59,7 @@ public interface BaseMapper<T, ID extends Serializable> {
      * @param entity
      * @return
      */
-    long updateById(T entity);
+    long updateByPrimaryKey(T entity);
 
     /**
      * 插入一条entity到表中
@@ -75,7 +67,7 @@ public interface BaseMapper<T, ID extends Serializable> {
      * @param entity
      * @return
      */
-    T save(T entity);
+    long save(T entity);
 
     /**
      * 统计所有数据的总和
@@ -97,6 +89,6 @@ public interface BaseMapper<T, ID extends Serializable> {
      *
      * @param id
      */
-    long deleteById(ID id);
+    long deleteByPrimaryKey(ID id);
 
 }
