@@ -8,7 +8,7 @@ import java.util.List;
  * Project Name: generator
  * Description: 该类包含表的相关信息、对应的类的相关信息、表中属性的相关信息
  */
-public class GenTable {
+public class GenTables {
 
     /** 数据库表名 */
     private String tableName;
@@ -16,8 +16,10 @@ public class GenTable {
     private String className;
     /** Mapper类名 */
     private String mapperClassName;
+    /** 数据库表名注释 */
+    private String tableComment;
     /** 表字段列表 */
-    private List<GenProperty> genPropertyList;
+    private List<GenColumns> genColumnsList;
     /** model类的package */
     private String modelPackage;
     /** mapper类的package */
@@ -55,12 +57,20 @@ public class GenTable {
         this.mapperClassName = mapperClassName;
     }
 
-    public List<GenProperty> getGenPropertyList() {
-        return genPropertyList;
+    public String getTableComment() {
+        return tableComment;
     }
 
-    public void setGenPropertyList(List<GenProperty> genPropertyList) {
-        this.genPropertyList = genPropertyList;
+    public void setTableComment(String tableComment) {
+        this.tableComment = tableComment;
+    }
+
+    public List<GenColumns> getGenColumnsList() {
+        return genColumnsList;
+    }
+
+    public void setGenColumnsList(List<GenColumns> genColumnsList) {
+        this.genColumnsList = genColumnsList;
     }
 
     public String getModelPackage() {

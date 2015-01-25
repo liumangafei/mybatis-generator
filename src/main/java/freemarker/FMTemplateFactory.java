@@ -5,10 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Author: liumangafei
@@ -24,7 +20,7 @@ public class FMTemplateFactory {
         try {
             return FMConfiguration.getInstance().getTemplate(templateName);
         } catch (IOException e) {
-            logger.info("FreeMarker Templates File Path Error!");
+            logger.error("FreeMarker Templates File Path Error!");
             e.printStackTrace();
         }
         return null;

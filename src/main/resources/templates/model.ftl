@@ -4,6 +4,11 @@ package ${package};
 import ${import};
 </#list>
 
+/**
+* Author: ${sysUsername}
+* Date: ${.now?string("yyyy-MM-dd HH:mm:ss")}
+* Description: ${tableComment}
+*/
 public class ${className} {
 
 <#list propertyList as property>

@@ -1,13 +1,12 @@
 package generator;
 
 import freemarker.FMTemplateFactory;
-import model.GenTable;
-import model.GenProperty;
+import model.GenTables;
+import model.GenColumns;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import util.SystemInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,14 +27,14 @@ public class ModelGenerator implements Generator {
 
 //    private static Logger logger = LoggerFactory.getLogger(ModelGenerator.class);
 
-    private GenTable genTable = null;
+    private GenTables genTables = null;
 
-    public ModelGenerator(GenTable genTable){
-        this.genTable = genTable;
+    public ModelGenerator(GenTables genTables){
+        this.genTables = genTables;
     }
 
     public String getPackage(){
-        return genTable.getModelPackage();
+        return genTables.getModelPackage();
     }
 
     /**
@@ -44,18 +43,18 @@ public class ModelGenerator implements Generator {
      * @return
      */
     public List<String> getImportList(){
-        List<GenProperty> genPropertyList = genTable.getGenPropertyList();
+        List<GenColumns> genColumnsList = genTables.getGenColumnsList();
 
-        if(genPropertyList != null && genPropertyList.size() > 0){
+        if(genColumnsList != null && genColumnsList.size() > 0){
             List<String> importList = new ArrayList<String>();
 
             String dateStr = null;
             String bigDecimalStr = null;
-            for(GenProperty genProperty : genPropertyList){
-                if("Date".equals(genProperty.getPropertyType()) && dateStr == null){
+            for(GenColumns genColumns : genColumnsList){
+                if("Date".equals(genColumns.getPropertyType()) && dateStr == null){
                     dateStr = "java.util.Date";
                     importList.add(dateStr);
-                }else if("BigDecimal".equals(genProperty.getPropertyType()) && bigDecimalStr == null){
+                }else if("BigDecimal".equals(genColumns.getPropertyType()) && bigDecimalStr == null){
                     bigDecimalStr = "java.math.BigDecimal";
                     importList.add(bigDecimalStr);
                 }
@@ -68,11 +67,11 @@ public class ModelGenerator implements Generator {
     }
 
     public String getClassName(){
-        return genTable.getClassName();
+        return genTables.getClassName();
     }
 
-    public List<GenProperty> getPropertyList(){
-        return genTable.getGenPropertyList();
+    public List<GenColumns> getPropertyList(){
+        return genTables.getGenColumnsList();
     }
 
     @Override
@@ -83,7 +82,10 @@ public class ModelGenerator implements Generator {
         root.put("package", getPackage());
         root.put("importList", getImportList());
         root.put("className", getClassName());
+        root.put("tableComment", genTables.getTableComment());
         root.put("propertyList", getPropertyList());
+
+        root.put("sysUsername", SystemInfo.getUsername());
 
         temp.process(root, out);
     }
@@ -97,14 +99,15 @@ public class ModelGenerator implements Generator {
 
     @Override
     public void generateFile() throws IOException, TemplateException {
-        generateFile(genTable.getModelPath());
+        generateFile(genTables.getModelPath());
     }
 
-    public GenTable getGenTable() {
-        return genTable;
+    public GenTables getGenTables() {
+        return genTables;
     }
 
-    public void setGenTable(GenTable genTable) {
-        this.genTable = genTable;
+    public void setGenTables(GenTables genTables) {
+        this.genTables = genTables;
     }
+
 }

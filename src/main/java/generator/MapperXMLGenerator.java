@@ -1,10 +1,8 @@
 package generator;
 
 import freemarker.FMTemplateFactory;
-import model.GenTable;
+import model.GenTables;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import util.StringUtil;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -26,18 +24,18 @@ public class MapperXMLGenerator implements Generator {
 
 //    private static Logger logger = LoggerFactory.getLogger(MapperXMLGenerator.class);
 
-    private GenTable genTable = null;
+    private GenTables genTables = null;
 
-    public MapperXMLGenerator(GenTable genTable){
-        this.genTable = genTable;
+    public MapperXMLGenerator(GenTables genTables){
+        this.genTables = genTables;
     }
 
     private String getModelResultMap(){
-        return StringUtil.toLowerCaseFristOne(genTable.getClassName()) + "ResultMap";
+        return StringUtil.toLowerCaseFristOne(genTables.getClassName()) + "ResultMap";
     }
 
     private String getModelPath(){
-        return genTable.getModelPackage() + "." + genTable.getClassName();
+        return genTables.getModelPackage() + "." + genTables.getClassName();
     }
 
     @Override
@@ -45,10 +43,10 @@ public class MapperXMLGenerator implements Generator {
         Template temp = FMTemplateFactory.getTemplate("mapperXml.ftl");
 
         Map root = new HashMap();
-        root.put("tableName", genTable.getTableName());
-        root.put("mapperClassName", genTable.getMapperClassName());
-        root.put("propertyList", genTable.getGenPropertyList());
-        root.put("mapperPackage", genTable.getMapperPackage());
+        root.put("tableName", genTables.getTableName());
+        root.put("mapperClassName", genTables.getMapperClassName());
+        root.put("propertyList", genTables.getGenColumnsList());
+        root.put("mapperPackage", genTables.getMapperPackage());
         root.put("modelResultMap", getModelResultMap());
         root.put("modelPath", getModelPath());
 
@@ -65,14 +63,14 @@ public class MapperXMLGenerator implements Generator {
 
     @Override
     public void generateFile() throws IOException, TemplateException {
-        generateFile(genTable.getMapperXmlPath());
+        generateFile(genTables.getMapperXmlPath());
     }
 
-    public GenTable getGenTable() {
-        return genTable;
+    public GenTables getGenTables() {
+        return genTables;
     }
 
-    public void setGenTable(GenTable genTable) {
-        this.genTable = genTable;
+    public void setGenTables(GenTables genTables) {
+        this.genTables = genTables;
     }
 }

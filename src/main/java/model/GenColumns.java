@@ -6,7 +6,7 @@ package model;
  * Project Name: generator
  * Description: 该类为表中的属性信息及对应类的相关信息
  */
-public class GenProperty {
+public class GenColumns {
 
     private Boolean isPrimaryKey;
     private String propertyType;

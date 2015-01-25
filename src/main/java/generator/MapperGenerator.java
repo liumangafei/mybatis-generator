@@ -3,10 +3,10 @@ package generator;
 import freemarker.FMTemplateFactory;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import model.GenProperty;
-import model.GenTable;
+import model.GenColumns;
+import model.GenTables;
 import org.apache.commons.io.FileUtils;
-import util.StringUtil;
+import util.SystemInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,23 +25,23 @@ public class MapperGenerator implements Generator {
 
 //    private static Logger logger = LoggerFactory.getLogger(MapperGenerator.class);
 
-    private GenTable genTable = null;
+    private GenTables genTables = null;
 
-    public MapperGenerator(GenTable genTable){
-        this.genTable = genTable;
+    public MapperGenerator(GenTables genTables){
+        this.genTables = genTables;
     }
 
     private String getModelPath(){
-        return genTable.getModelPackage() + "." + genTable.getClassName();
+        return genTables.getModelPackage() + "." + genTables.getClassName();
     }
 
     private String getPrimaryKeyType(){
 
         int primaryKeyCount = 0;
-        GenProperty property = null;
-        for(GenProperty genProperty : genTable.getGenPropertyList()){
-            if(genProperty.getIsPrimaryKey() != null && genProperty.getIsPrimaryKey()){
-                property = genProperty;
+        GenColumns property = null;
+        for(GenColumns genColumns : genTables.getGenColumnsList()){
+            if(genColumns.getIsPrimaryKey() != null && genColumns.getIsPrimaryKey()){
+                property = genColumns;
                 primaryKeyCount++;
             }
         }
@@ -58,10 +58,14 @@ public class MapperGenerator implements Generator {
         Template temp = FMTemplateFactory.getTemplate("mapper.ftl");
 
         Map root = new HashMap();
-        root.put("package", genTable.getMapperPackage());
+        root.put("package", genTables.getMapperPackage());
         root.put("modelPath", getModelPath());
-        root.put("className", genTable.getClassName());
+        root.put("className", genTables.getClassName());
+        root.put("tableName", genTables.getTableName());
+        root.put("tableComment", genTables.getTableComment());
         root.put("primaryKeyType", getPrimaryKeyType());
+
+        root.put("sysUsername", SystemInfo.getUsername());
 
         temp.process(root, out);
         out.flush();
@@ -76,14 +80,14 @@ public class MapperGenerator implements Generator {
 
     @Override
     public void generateFile() throws IOException, TemplateException {
-        generateFile(genTable.getMapperPath());
+        generateFile(genTables.getMapperPath());
     }
 
-    public GenTable getGenTable() {
-        return genTable;
+    public GenTables getGenTables() {
+        return genTables;
     }
 
-    public void setGenTable(GenTable genTable) {
-        this.genTable = genTable;
+    public void setGenTables(GenTables genTables) {
+        this.genTables = genTables;
     }
 }

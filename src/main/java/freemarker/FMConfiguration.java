@@ -41,7 +41,7 @@ public class FMConfiguration {
                         //cfg.setSetting(Configuration.CACHE_STORAGE_KEY, "strong: 20, soft: 250"); //另一种写法，因默认用的MruCacheStorage，所以能在配置文件中这么写
                         //cfg.setTemplateUpdateDelay(CACHE_CYCLE);
                     } catch (IOException e) {
-                        logger.info("FreeMarker Init Configuration Error!");
+                        logger.error("FreeMarker Init Configuration Error!");
                         e.printStackTrace();
                     }
                 }

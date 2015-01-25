@@ -19,8 +19,6 @@ import java.util.Map;
  */
 public class DBConnector {
 
-	protected Logger logger = Logger.getLogger(this.getClass().getName());
-
 	private static String driverName = null;
 	private static String sqlUrl = null;
 	private static String sqlUser = null;
@@ -76,7 +74,7 @@ public class DBConnector {
 	 *
 	 * @return
 	 */
-	public List<Tables> queryTables(){
+	public List<Tables> queryAllTables() throws ClassNotFoundException, SQLException{
 		String sql = "select * from information_schema.tables where table_schema=DATABASE()";
 		Connection conn = null;
 		Statement stmt = null;
@@ -117,11 +115,9 @@ public class DBConnector {
 			}
 
 		} catch (ClassNotFoundException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
+			throw e;
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
+			throw e;
 		} finally {
 			DBConnector.disconnect(conn, stmt, rs);
 		}
@@ -130,12 +126,65 @@ public class DBConnector {
 	}
 
 	/**
+	 * 查询数据库中表名称为tableName的信息
+	 *
+	 * @return
+	 */
+	public Tables queryTables(String tableName) throws ClassNotFoundException, SQLException{
+		String sql = "select * from information_schema.tables where table_schema=DATABASE() and table_name = '"+ tableName +"'";
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		Tables tables = null;
+
+		try {
+			conn = DBConnector.startConnect();
+			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			rs = stmt.executeQuery(sql);
+
+			if(rs.next()){
+				tables = new Tables();
+				tables.setTableCatalog(rs.getString("TABLE_CATALOG"));
+				tables.setTableSchema(rs.getString("TABLE_SCHEMA"));
+				tables.setTableName(rs.getString("TABLE_NAME"));
+				tables.setTableType(rs.getString("TABLE_TYPE"));
+				tables.setEngine(rs.getString("ENGINE"));
+				tables.setVersion(rs.getLong("VERSION"));
+				tables.setRowFormat(rs.getString("ROW_FORMAT"));
+				tables.setTableRows(rs.getLong("TABLE_ROWS"));
+				tables.setAvgRowLength(rs.getLong("AVG_ROW_LENGTH"));
+				tables.setDataLength(rs.getLong("DATA_LENGTH"));
+				tables.setMaxDataLength(rs.getLong("MAX_DATA_LENGTH"));
+				tables.setIndexLength(rs.getLong("INDEX_LENGTH"));
+				tables.setDataFree(rs.getLong("DATA_FREE"));
+				tables.setAutoIncrement(rs.getLong("AUTO_INCREMENT"));
+				tables.setCreateTime(rs.getTimestamp("CREATE_TIME"));
+				tables.setUpdateTime(rs.getTimestamp("UPDATE_TIME"));
+				tables.setCheckTime(rs.getTimestamp("CHECK_TIME"));
+				tables.setTableCollation(rs.getString("TABLE_COLLATION"));
+				tables.setChecksum(rs.getLong("CHECKSUM"));
+				tables.setCreateOptions(rs.getString("CREATE_OPTIONS"));
+				tables.setTableComment(rs.getString("TABLE_COMMENT"));
+			}
+
+		} catch (ClassNotFoundException e) {
+			throw e;
+		} catch (SQLException e) {
+			throw e;
+		} finally {
+			DBConnector.disconnect(conn, stmt, rs);
+		}
+
+		return tables;
+	}
+
+	/**
 	 * 根据表明查询表内所有字段的信息
 	 *
 	 * @param tableName
 	 * @return
 	 */
-	public List<Columns> queryColumnsByTableName(String tableName){
+	public List<Columns> queryColumnsByTableName(String tableName) throws ClassNotFoundException, SQLException{
 		String sql = "select * from information_schema.columns where table_schema=DATABASE() and table_name='"+ tableName +"'";
 
 		Connection conn = null;
@@ -175,11 +224,9 @@ public class DBConnector {
 			}
 
 		} catch (ClassNotFoundException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
+			throw e;
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
+			throw e;
 		} finally {
 			DBConnector.disconnect(conn, stmt, rs);
 		}
@@ -187,8 +234,8 @@ public class DBConnector {
 		return resultList;
 	}
 
-    public static void main(String[] args) {
-        new DBConnector().queryColumnsByTableName("sys_city");
+    public static void main(String[] args) throws ClassNotFoundException, SQLException {
+		System.out.println(new DBConnector().queryTables("t_admin"));
     }
 
 }

@@ -2,10 +2,11 @@ package generator;
 
 import db.DBConnector;
 import model.*;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.StringUtil;
 import properties.ConfigPropertiesUtil;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,10 +18,10 @@ import java.util.List;
  */
 public class GeneratorController {
 
-    protected Logger logger = Logger.getLogger(this.getClass().getName());
+    private static org.slf4j.Logger logger = LoggerFactory.getLogger(GeneratorController.class);
 
     private String basePath = null;
-    private List<GenTable> genTableList = null;
+    private List<GenTables> genTablesList = null;
 
     public GeneratorController(){
 //        basePath = GeneratorController.class.getResource("/").toString();
@@ -30,51 +31,47 @@ public class GeneratorController {
             baseForder = "generatedFile";
         }
         this.basePath = System.getProperty("user.dir") + "\\" + baseForder; //初始化生成器的基础路径
-        this.genTableList = initGenTableList();
+        this.genTablesList = initGenTablesList();
     }
 
     public GeneratorController(String basePath){
         this.basePath = basePath;
-        this.genTableList = initGenTableList();
+        this.genTablesList = initGenTablesList();
     }
 
-    public GeneratorController(String basePath, List<GenTable> genTableList){
+    public GeneratorController(String basePath, List<GenTables> genTablesList){
         this.basePath = basePath;
-        this.genTableList = genTableList;
+        this.genTablesList = genTablesList;
     }
 
     /**
      * 初始化数据库表对应的对象
      */
-    private List<GenTable> initGenTableList(){
-
-        List<GenTable> genTableList = new ArrayList<GenTable>();
-
-        //获取数据库表名列表GenTable对象列表
-        List<String> tableNameList = getTableNameList();
-
+    private List<GenTables> initGenTablesList(){
         logger.info("---------------开始初始化数据库表：---------------");
-        //根据数据库表名列表获取
-        if(tableNameList != null && tableNameList.size() > 0){
-            for(String tableName : tableNameList){
-                logger.info("正在初始化表："+tableName);
-                genTableList.add(getGenTableByTableName(tableName));
+
+        List<GenTables> genTablesList = new ArrayList<GenTables>();
+
+        //获取数据库表名列表GenTables对象列表
+        try {
+            List<Tables> tablesList = getTablesList();
+
+            //根据数据库表名列表获取
+            if(tablesList != null && tablesList.size() > 0){
+                for(Tables tables : tablesList){
+                    logger.info("正在初始化表：" + tables.getTableName());
+                    genTablesList.add(getGenTablesByTableName(tables));
+                }
+            }else{
+                throw new RuntimeException("未找到需要初始化的数据库表！");
             }
-        }else{
-            throw new RuntimeException("未找到需要初始化的数据库表！");
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
         logger.info("---------------初始化数据库表已结束---------------");
 
-        return genTableList;
-    }
-
-    /**
-     * 获取数据库中所有的表对象
-     *
-     * @return
-     */
-    public List<Tables> getAllTablesList(){
-        return new DBConnector().queryTables();
+        return genTablesList;
     }
 
     /**
@@ -82,25 +79,25 @@ public class GeneratorController {
      *
      * @return
      */
-    public List<String> getTableNameList(){
-        List<String> tableNameList = new ArrayList<String>();
+    public List<Tables> getTablesList() throws Exception{
+        List<Tables> tablesList = new ArrayList<Tables>();
         String tableNames = ConfigPropertiesUtil.getProperty("tableNames");
 
-        if(tableNames == null || "".equals(tableNames.trim())) {
-            // 把获取数据库表对象列表，然后获取表名填充进tableNameList中
-            List<Tables> tablesLit = getAllTablesList();
-            if(tablesLit != null) {
-                for (Tables tables : tablesLit) {
-                    tableNameList.add(tables.getTableName());
+        try {
+            if(tableNames == null || "".equals(tableNames.trim())) {
+                // 把获取数据库所有表对象列表
+                return new DBConnector().queryAllTables();
+            }else{
+                for(String tableName : tableNames.replaceAll(" ", "").split(",")){
+                    tablesList.add(new DBConnector().queryTables(tableName));
                 }
             }
-        }else{
-            for(String tableName : tableNames.trim().split(",")){
-                tableNameList.add(tableName);
-            }
+        }catch (Exception e){
+            throw e;
         }
 
-        return tableNameList;
+
+        return tablesList;
     }
 
     /**
@@ -125,19 +122,19 @@ public class GeneratorController {
      * @param tableName
      * @return
      */
-    private List<GenProperty> getPropertyList(String tableName){
+    private List<GenColumns> getPropertyList(String tableName) throws ClassNotFoundException, SQLException {
 
         List<Columns> columnsList = new DBConnector().queryColumnsByTableName(tableName);
         List<Columns> primaryKeyColumnsList = getPrimaryKeyList(columnsList);
 
         //如果数据库字段或者主键为空，则说明之前的查询已经出错，没有继续下去的必要
         if(columnsList == null || columnsList.size() == 0){
-            throw new RuntimeException(tableName + "该表获取字段失败！");
+            throw new SQLException(tableName + "表:获取字段失败！");
         }
 
         //获取主键列表，如果没有主键则会报错
         if(primaryKeyColumnsList == null || primaryKeyColumnsList.size() == 0){
-            throw new RuntimeException(tableName + "该表获取主键失败！");
+            throw new SQLException(tableName + "表:获取主键失败！");
         }
 
         return columnsList2GenPropertyList(columnsList);
@@ -150,24 +147,24 @@ public class GeneratorController {
      * @param columns
      * @return
      */
-    private GenProperty columns2GenProperty(Columns columns){
+    private GenColumns columns2GenProperty(Columns columns){
         String columnName = columns.getColumnName();
         String columnNameCamelCaseStr = StringUtil.toCamelCase(columnName);
         String upperFirstCamelStr = StringUtil.toUpperCaseFristOne(columnNameCamelCaseStr);
         String propertyType = columns.getDataType();
         String propertyJavaType = convertDbType2JavaType(propertyType);
 
-        GenProperty genProperty = new GenProperty();
-        genProperty.setIsPrimaryKey(isPrimaryKey(columns));
-        genProperty.setPropertyName(columnNameCamelCaseStr);
-        genProperty.setPropertyType(propertyJavaType); // 根据数据库类型获取JAVA字段类型
-        genProperty.setTablePropertyName(columnName);
-        genProperty.setTablePropertyType(propertyType);
-        genProperty.setTablePropertyRemarmk(columns.getColumnComment());
-        genProperty.setPropertyNameSetStr("set" + upperFirstCamelStr);
-        genProperty.setPropertyNameGetStr("get" + upperFirstCamelStr);
+        GenColumns genColumns = new GenColumns();
+        genColumns.setIsPrimaryKey(isPrimaryKey(columns));
+        genColumns.setPropertyName(columnNameCamelCaseStr);
+        genColumns.setPropertyType(propertyJavaType); // 根据数据库类型获取JAVA字段类型
+        genColumns.setTablePropertyName(columnName);
+        genColumns.setTablePropertyType(propertyType);
+        genColumns.setTablePropertyRemarmk(columns.getColumnComment());
+        genColumns.setPropertyNameSetStr("set" + upperFirstCamelStr);
+        genColumns.setPropertyNameGetStr("get" + upperFirstCamelStr);
 
-        return genProperty;
+        return genColumns;
     }
 
     /**
@@ -176,36 +173,39 @@ public class GeneratorController {
      * @param columnsList
      * @return
      */
-    private List<GenProperty> columnsList2GenPropertyList(List<Columns> columnsList){
-        List<GenProperty> genPropertyList = new ArrayList<GenProperty>();
+    private List<GenColumns> columnsList2GenPropertyList(List<Columns> columnsList){
+        List<GenColumns> genColumnsList = new ArrayList<GenColumns>();
 
         for(Columns columns : columnsList){
-            genPropertyList.add(columns2GenProperty(columns));
+            genColumnsList.add(columns2GenProperty(columns));
         }
 
-        return genPropertyList;
+        return genColumnsList;
     }
 
     /**
-     * 根据数据库表名获取GenTable对象
+     * 根据数据库表名获取GenTables对象
      *
-     * @param tableName
+     * @param tables
      * @return
      */
-    private GenTable getGenTableByTableName(String tableName){
-        GenTable genTable = new GenTable();
+    private GenTables getGenTablesByTableName(Tables tables) throws ClassNotFoundException, SQLException {
+        String tableName = tables.getTableName();
+        String className = StringUtil.toUpperCaseFristOne(StringUtil.toCamelCase(tableName));
 
-        genTable.setTableName(tableName);
-        genTable.setClassName(StringUtil.toUpperCaseFristOne(StringUtil.toCamelCase(tableName)));
-        genTable.setMapperClassName(genTable.getClassName() + "Mapper");
-        genTable.setGenPropertyList(getPropertyList(tableName));
-        genTable.setModelPackage(ConfigPropertiesUtil.getProperty("modelPackage"));
-        genTable.setMapperPackage(ConfigPropertiesUtil.getProperty("mapperPackage"));
-        genTable.setMapperXmlPackage(ConfigPropertiesUtil.getProperty("mapperXmlPackage"));
-        genTable.setModelPath(getModelPath(basePath, genTable.getModelPackage(), genTable.getClassName()));
-        genTable.setMapperPath(getMapperPath(basePath, genTable.getMapperPackage(), genTable.getClassName()));
-        genTable.setMapperXmlPath(getMapperXmlPath(basePath, genTable.getMapperXmlPackage(), genTable.getClassName()));
-        return genTable;
+        GenTables genTables = new GenTables();
+        genTables.setTableName(tableName);
+        genTables.setClassName(className);
+        genTables.setTableComment(tables.getTableComment());
+        genTables.setMapperClassName(genTables.getClassName() + "Mapper");
+        genTables.setGenColumnsList(getPropertyList(tableName));
+        genTables.setModelPackage(ConfigPropertiesUtil.getProperty("modelPackage"));
+        genTables.setMapperPackage(ConfigPropertiesUtil.getProperty("mapperPackage"));
+        genTables.setMapperXmlPackage(ConfigPropertiesUtil.getProperty("mapperXmlPackage"));
+        genTables.setModelPath(getModelPath(basePath, genTables.getModelPackage(), genTables.getClassName()));
+        genTables.setMapperPath(getMapperPath(basePath, genTables.getMapperPackage(), genTables.getClassName()));
+        genTables.setMapperXmlPath(getMapperXmlPath(basePath, genTables.getMapperXmlPackage(), genTables.getClassName()));
+        return genTables;
     }
 
     /**
@@ -271,49 +271,46 @@ public class GeneratorController {
     /**
      * 生成一个model文件
      *
-     * @param genTable
+     * @param genTables
      */
-    public void generateModelFile(GenTable genTable) {
+    public void generateModelFile(GenTables genTables) throws Exception {
         try {
             //创建model文件
-            Generator generator = new ModelGenerator(genTable); // model生成器
+            Generator generator = new ModelGenerator(genTables); // model生成器
             generator.generateFile();
-            logger.info(genTable.getModelPath() + "文件创建完毕！");
+            logger.info(genTables.getModelPath() + "文件创建完毕！");
         } catch (Exception e) {
-            new RuntimeException("创建" + genTable.getModelPath() + "文件时出错！");
-            e.printStackTrace();
+            throw new Exception("创建" + genTables.getModelPath() + "文件时出错！");
         }
     }
 
     /**
      * 生成一个mapper文件
      *
-     * @param genTable
+     * @param genTables
      */
-    public void generateMapperFile(GenTable genTable) {
+    public void generateMapperFile(GenTables genTables) throws Exception {
         try {
-            Generator generator = new MapperGenerator(genTable); // mapper生成器
+            Generator generator = new MapperGenerator(genTables); // mapper生成器
             generator.generateFile(); // 创建mapper文件
-            logger.info(genTable.getMapperPath() + "文件创建完毕！");
+            logger.info(genTables.getMapperPath() + "文件创建完毕！");
         } catch (Exception e) {
-            new RuntimeException("创建" + genTable.getMapperPath() + "文件时出错！");
-            e.printStackTrace();
+            throw new Exception("创建" + genTables.getMapperPath() + "文件时出错！");
         }
     }
 
     /**
      * 生成一个mapperXml文件
      *
-     * @param genTable
+     * @param genTables
      */
-    public void generateMapperXmlFile(GenTable genTable) {
+    public void generateMapperXmlFile(GenTables genTables) throws Exception {
         try {
-            Generator generator = new MapperXMLGenerator(genTable); // mapperXml生成器
+            Generator generator = new MapperXMLGenerator(genTables); // mapperXml生成器
             generator.generateFile(); // 创建mapperXml文件
-            logger.info(genTable.getMapperXmlPath() + "文件创建完毕！");
+            logger.info(genTables.getMapperXmlPath() + "文件创建完毕！");
         } catch (Exception e) {
-            new RuntimeException("创建" + genTable.getMapperXmlPath() + "文件时出错！");
-            e.printStackTrace();
+            throw new Exception("创建" + genTables.getMapperXmlPath() + "文件时出错！");
         }
     }
 
@@ -323,14 +320,19 @@ public class GeneratorController {
     public void generateAll(){
         logger.info("===============生成器开始执行===============");
 
-        if(genTableList != null && genTableList.size() > 0){
-            for(GenTable genTable : genTableList){
-                generateModelFile(genTable);
-                generateMapperFile(genTable);
-                generateMapperXmlFile(genTable);
+        try {
+            if(genTablesList != null && genTablesList.size() > 0){
+                for(GenTables genTables : genTablesList){
+                    generateModelFile(genTables);
+                    generateMapperFile(genTables);
+                    generateMapperXmlFile(genTables);
+                }
+            }else{
+                logger.info("没有发现要生成表的相关信息！");
             }
-        }else{
-            logger.info("没有发现要生成表的相关信息！");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
 
         logger.info("===============生成器执行结束===============");
@@ -344,12 +346,12 @@ public class GeneratorController {
         this.basePath = basePath;
     }
 
-    public List<GenTable> getGenTableList() {
-        return genTableList;
+    public List<GenTables> getGenTablesList() {
+        return genTablesList;
     }
 
-    public void setGenTableList(List<GenTable> genTableList) {
-        this.genTableList = genTableList;
+    public void setGenTablesList(List<GenTables> genTablesList) {
+        this.genTablesList = genTablesList;
     }
 
 
