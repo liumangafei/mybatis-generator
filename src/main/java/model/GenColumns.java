@@ -8,13 +8,37 @@ package model;
  */
 public class GenColumns {
 
+    /**
+     * 是否主键
+     */
     private Boolean isPrimaryKey;
+    /**
+     * 属性类型
+     */
     private String propertyType;
+    /**
+     * 属性类型
+     */
     private String propertyName;
+    /**
+     * 数据库中属性名称
+     */
     private String tablePropertyName;
+    /**
+     * 数据库中属性类型
+     */
     private String tablePropertyType;
+    /**
+     * 数据库属性备注
+     */
     private String tablePropertyRemarmk;
+    /**
+     * 属性的setter方法名称
+     */
     private String propertyNameSetStr;
+    /**
+     * 属性的getter方法名称
+     */
     private String propertyNameGetStr;
 
     public Boolean getIsPrimaryKey() {
